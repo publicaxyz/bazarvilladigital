@@ -455,6 +455,87 @@ const rotatorLines = [
     });
   });
 
+
+
+
+
+// ──  CODIGO AGREGADO Lógica Mínima para Me Gusta y Visitas ──
+  
+  // 1. Incrementar y cargar contador de visitas global (Tabla: site_visits)
+  async function initSiteVisits() {
+    const counterEl = document.getElementById("siteVisitsCounter");
+    if (!counterEl) return;
+    
+    try {
+      // Aquí puedes apuntar al endpoint de tu backend o función serverless que actualice 'site_visits'
+      // Ejemplo básico simulado o conectado a tu API:
+      let res = await fetch('/api/visits', { method: 'POST' });
+      let data = await res.json();
+      counterEl.textContent = data.total_visits || "2,430+";
+    } catch (e) {
+      counterEl.textContent = "2,430+"; // Fallback visual por seguridad
+    }
+  }
+
+  // 2. Manejar Likes por producto (Tabla: product_likes)
+  async function initProductLikes() {
+    // Cargar los likes iniciales de la base de datos para cada tarjeta
+    document.querySelectorAll(".cat-card[data-plan-id]").forEach(async (card) => {
+      const planId = card.getAttribute("data-plan-id");
+      const countSpan = card.querySelector('.like-count');
+      
+      try {
+        let res = await fetch(`/api/likes?product_id=${planId}`);
+        let data = await res.json();
+        if(data && data.likes_count !== undefined) {
+          countSpan.textContent = data.likes_count;
+        }
+      } catch(e) {
+        // Silencioso si falla la red
+      }
+    });
+  }
+
+  // Sobrescribir la función de dar like para que guarde en la tabla product_likes
+  window.darLikeLocal = async function(btn) {
+    const card = btn.closest(".cat-card");
+    const planId = card.getAttribute("data-plan-id");
+    const countSpan = btn.querySelector('.like-count');
+    
+    let actual = parseInt(countSpan.textContent) || 0;
+    countSpan.textContent = actual + 1; // Respuesta visual inmediata al usuario
+
+    try {
+      await fetch('/api/likes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: planId })
+      });
+    } catch(e) {
+      console.error("No se pudo registrar el like en la base de datos");
+    }
+  }
+
+  // FIN DEL CODIGO AGREGADO Ejecutar al cargar la página
+  document.addEventListener("DOMContentLoaded", () => {
+    initSiteVisits();
+    initProductLikes();
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const rotatorEl = document.getElementById("ctaRotator");
   if (rotatorEl) {
     let idx = 0;
