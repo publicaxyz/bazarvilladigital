@@ -459,67 +459,76 @@ const rotatorLines = [
 
 
 
-// ——— SCRIPT CORREGIDO: Lógica para Me Visitas y Me Gusta (Supabase) ———
+// ——— SCRIPT CORREGIDO Y BLINDADO ———
 
 // 1. Incrementar y cargar contador de visitas global (Tabla: site_visits)
 async function initSiteVisits() {
-    const counterEl = document.getElementById("siteVisitsCounter");
-    if (!counterEl) return;
+    // Buscamos tanto por ID como por CLASE para que nunca falle
+    const counterEls = document.querySelectorAll("#siteVisitsCounter, .site-visits-counter");
+    if (counterEls.length === 0) return;
 
     try {
-        // Registra +1 visita en el servidor/Supabase de forma silenciosa
+        // Registra +1 visita en el servidor/Supabase
         await fetch('/api/visits', { method: 'POST' });
 
         // Consulta el total de visitas actualizado
         let res = await fetch('/api/visits');
         let data = await res.json();
         
-        // Mantiene el puntito verde estético y actualiza el número real
-        const visitsTotal = data.total_visits || data.count || 2430;
-        counterEl.innerHTML = `<span class="cta-dot"></span> +${visitsTotal.toLocaleString()} visitas totales`;
+        const visitsTotal = data.total_visits !== undefined ? data.total_visits : (data.count !== undefined ? data.count : 2430);
+        
+        counterEls.forEach(el => {
+            el.innerHTML = `<span class="cta-dot"></span> +${visitsTotal.toLocaleString()} visitas totales`;
+        });
     } catch (e) {
         console.error("Error al cargar visitas:", e);
-        counterEl.innerHTML = `<span class="cta-dot"></span> Agentes disponibles ahora`; // Fallback visual
+        counterEls.forEach(el => {
+            el.innerHTML = `<span class="cta-dot"></span> Agentes disponibles ahora`;
+        });
     }
 }
 
 // 2. Manejar Likes por producto (Tabla: product_likes)
 async function initProductLikes() {
-    document.querySelectorAll(".cat-card").forEach(async (card) => {
+    const cards = document.querySelectorAll(".cat-card");
+    
+    cards.forEach(async (card) => {
         const planId = card.getAttribute("data-plan-id");
         const countSpan = card.querySelector('.like-count');
         if (!planId || !countSpan) return;
 
         try {
-            let res = await fetch(`/api/likes?product_id=${planId}`);
+            let res = await fetch(`/api/likes?product_id=${encodeURIComponent(planId)}`);
             let data = await res.json();
             
-            // Verificamos ambas opciones de columnas por seguridad (likes_count o likes)
-            const totalLikes = data.likes_count !== undefined ? data.likes_count : (data.likes !== undefined ? data.likes : null);
-            
-            if (totalLikes !== null) {
-                countSpan.textContent = totalLikes;
-            }
+            const totalLikes = data.likes !== undefined ? data.likes : (data.likes_count !== undefined ? data.likes_count : 0);
+            countSpan.textContent = totalLikes;
         } catch(e) {
             console.error("Error al cargar likes del producto:", planId);
         }
     });
 }
 
-// 3. Sobrescribir la función de dar like para que guarde en la tabla product_likes de Supabase
+// 3. Función segura para dar like
 window.darLikeLocal = async function(btn) {
+    // Evitar múltiples clics seguidos mientras procesa
+    if (btn.dataset.processing === "true") return;
+    btn.dataset.processing = "true";
+
     const card = btn.closest('.cat-card');
-    if (!card) return;
+    if (!card) {
+        btn.dataset.processing = "false";
+        return;
+    }
     
     const planId = card.getAttribute('data-plan-id');
     const countSpan = card.querySelector('.like-count');
-    if (!planId || !countSpan) return;
+    if (!planId || !countSpan) {
+        btn.dataset.processing = "false";
+        return;
+    }
 
-    // Actualización optimista instantánea en pantalla
-    let currentLikes = parseInt(countSpan.textContent) || 0;
-    countSpan.textContent = currentLikes + 1;
-
-    // Animación visual de latido en el botón
+    // Animación visual de latido
     btn.classList.add('liked');
     setTimeout(() => btn.classList.remove('liked'), 300);
 
@@ -529,16 +538,17 @@ window.darLikeLocal = async function(btn) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ product_id: planId })
         });
-        const data = await response.json();
         
-        const confirmedLikes = data.likes_count !== undefined ? data.likes_count : (data.likes !== undefined ? data.likes : null);
+        const data = await response.json();
+        const confirmedLikes = data.likes !== undefined ? data.likes : (data.likes_count !== undefined ? data.likes_count : null);
+        
         if (response.ok && confirmedLikes !== null) {
-            countSpan.textContent = confirmedLikes;
+            countSpan.textContent = confirmedLikes; // Sincroniza con el dato real de Supabase
         }
     } catch (error) {
         console.error('Error al registrar el like en la BD:', error);
-        // Si falla la red, regresamos el contador al valor anterior
-        countSpan.textContent = currentLikes;
+    } finally {
+        btn.dataset.processing = "false";
     }
 };
 
@@ -547,7 +557,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initSiteVisits();
     initProductLikes();
 });
-
 
 
 
