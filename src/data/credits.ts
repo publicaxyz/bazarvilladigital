@@ -1,3 +1,7 @@
-export const CREDIT_NAME = "munozdez";
-export const CREDIT_URL  = "https://github.com/munoz-dev/";
+export const CREDIT_NAME = "Ade";
 export const CREDIT_TEXT = "Hecho con ❤️ por";
+export const SOCIAL_LINKS = [
+  { name: "Instagram", url: "https://www.instagram.com/bazarvilladigital" },
+  { name: "Facebook", url: "https://www.facebook.com/bazarvilladigital" },
+  { name: "TikTok", url: "https://www.tiktok.com/@bazarvilladigital" }
+];
