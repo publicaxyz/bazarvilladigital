@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase'; // Asegúrate de que la ruta a tu cliente supabase sea correcta
+import { supabase } from '../../lib/supabase';
 
 export async function GET({ request }) {
   const url = new URL(request.url);
@@ -13,16 +13,16 @@ export async function GET({ request }) {
 
   try {
     const { data, error } = await supabase
-      .from('product_likes') // Cambia 'product_likes' por el nombre de tu tabla en Supabase
-      .select('likes')
-      .eq('product_id', productId)
+      .from('product_likes')
+      .select('likes_count')
+      .eq('product_name', productId)
       .single();
 
     if (error && error.code !== 'PGRST116') {
       throw error;
     }
 
-    const likes = data ? data.likes : 0;
+    const likes = data ? data.likes_count : 0;
 
     return new Response(JSON.stringify({ likes }), {
       status: 200,
@@ -48,25 +48,24 @@ export async function POST({ request }) {
       });
     }
 
-    // Consultamos si ya existe el registro para este producto
     const { data: existingData } = await supabase
       .from('product_likes')
-      .select('likes')
-      .eq('product_id', product_id)
+      .select('likes_count')
+      .eq('product_name', product_id)
       .single();
 
     let newLikes = 1;
 
     if (existingData) {
-      newLikes = existingData.likes + 1;
+      newLikes = (existingData.likes_count || 0) + 1;
       await supabase
         .from('product_likes')
-        .update({ likes: newLikes })
-        .eq('product_id', product_id);
+        .update({ likes_count: newLikes })
+        .eq('product_name', product_id);
     } else {
       await supabase
         .from('product_likes')
-        .insert([{ product_id, likes: 1 }]);
+        .insert([{ product_name: product_id, likes_count: 1 }]);
     }
 
     return new Response(JSON.stringify({ success: true, likes: newLikes }), {
