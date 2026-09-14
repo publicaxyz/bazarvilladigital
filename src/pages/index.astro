@@ -463,16 +463,12 @@ const rotatorLines = [
 
 // 1. Incrementar y cargar contador de visitas global (Tabla: site_visits)
 async function initSiteVisits() {
-    // Buscamos tanto por ID como por CLASE para que nunca falle
     const counterEls = document.querySelectorAll("#siteVisitsCounter, .site-visits-counter");
     if (counterEls.length === 0) return;
 
     try {
-        // Registra +1 visita en el servidor/Supabase
-        await fetch('/api/visits', { method: 'POST' });
-
-        // Consulta el total de visitas actualizado
-        let res = await fetch('/api/visits');
+        // Registra la visita y obtiene el total directamente del POST
+        let res = await fetch('/api/visits', { method: 'POST' });
         let data = await res.json();
         
         const visitsTotal = data.total_visits !== undefined ? data.total_visits : (data.count !== undefined ? data.count : 2430);
@@ -483,14 +479,15 @@ async function initSiteVisits() {
     } catch (e) {
         console.error("Error al cargar visitas:", e);
         counterEls.forEach(el => {
-            el.innerHTML = `<span class="cta-dot"></span> Agentes disponibles ahora`;
+            el.innerHTML = `<span class="cta-dot"></span> +2,430 visitas totales`; // Valor por defecto seguro para que no se quede vacío
         });
     }
 }
 
 // 2. Manejar Likes por producto (Tabla: product_likes)
 async function initProductLikes() {
-    const cards = document.querySelectorAll(".cat-card");
+    // Buscamos cualquier elemento en la página que tenga el identificador de producto
+    const cards = document.querySelectorAll("[data-plan-id]");
     
     cards.forEach(async (card) => {
         const planId = card.getAttribute("data-plan-id");
@@ -511,11 +508,11 @@ async function initProductLikes() {
 
 // 3. Función segura para dar like
 window.darLikeLocal = async function(btn) {
-    // Evitar múltiples clics seguidos mientras procesa
     if (btn.dataset.processing === "true") return;
     btn.dataset.processing = "true";
 
-    const card = btn.closest('.cat-card');
+    // Buscamos el contenedor que tenga el ID del plan de forma directa
+    const card = btn.closest('[data-plan-id]');
     if (!card) {
         btn.dataset.processing = "false";
         return;
@@ -543,7 +540,7 @@ window.darLikeLocal = async function(btn) {
         const confirmedLikes = data.likes !== undefined ? data.likes : (data.likes_count !== undefined ? data.likes_count : null);
         
         if (response.ok && confirmedLikes !== null) {
-            countSpan.textContent = confirmedLikes; // Sincroniza con el dato real de Supabase
+            countSpan.textContent = confirmedLikes; 
         }
     } catch (error) {
         console.error('Error al registrar el like en la BD:', error);
@@ -551,7 +548,6 @@ window.darLikeLocal = async function(btn) {
         btn.dataset.processing = "false";
     }
 };
-
 // Inicializar funciones al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
     initSiteVisits();
