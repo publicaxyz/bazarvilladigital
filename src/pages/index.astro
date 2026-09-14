@@ -370,7 +370,7 @@ const rotatorLines = [
       <div class="cta-final-glow" aria-hidden="true"></div>
       <div class="cta-final-grid" aria-hidden="true"></div>
 
-<div class="cta-final-badge site-visits-counter">
+<div class="cta-final-badge" id="siteVisitsCounter">
     <span class="cta-dot"></span> Cargando visitas...
 </div>
 
@@ -944,12 +944,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ── Mini función para el botón Me Gusta ──
-  function darLikeLocal(btn) {
-    const countSpan = btn.querySelector('.like-count');
-    let actual = parseInt(countSpan.textContent) || 0;
-    countSpan.textContent = actual + 1;
-  }
+  // ── Mini función para el botón Me Gusta FUE ELIMINADA ESQUE ESTABA DUPLICADA──
+ 
 
   renderCart();
   syncCardButtons();
