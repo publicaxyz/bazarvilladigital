@@ -431,11 +431,23 @@ const rotatorLines = [
     </aside>
   </div>
 
+
 <footer class="footer">
     <div class="footer-logo display">{SITE_LOGO}<span>{SITE_LOGO_ACCENT}</span></div>
+    
+    <!-- Enlaces a tus redes sociales -->
+    <div class="footer-social">
+      {SOCIAL_LINKS.map((link) => (
+        <a href={link.url} target="_blank" rel="noopener" class="social-link">
+          {link.name}
+        </a>
+      ))}
+    </div>
+
     <p class="footer-copy">© {new Date().getFullYear()} <a href={CREDIT_URL} target="_blank" rel="noopener">{SITE_LOGO}{SITE_LOGO_ACCENT}</a> · Todos los derechos reservados.</p>
     <p class="footer-designer"><a href={CREDIT_URL} target="_blank" rel="noopener">{CREDIT_TEXT} {CREDIT_NAME}</a></p>
   </footer>
+
 
 </Layout>
 
