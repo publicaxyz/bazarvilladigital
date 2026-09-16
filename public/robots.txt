@@ -1,0 +1,3 @@
+# Hola robot, no mires aquí, es un proyecto personal privado 🤫
+User-agent: *
+Disallow: /
