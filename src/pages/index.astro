@@ -438,18 +438,32 @@ const rotatorLines = [
 <footer class="footer">
     <div class="footer-logo display">{SITE_LOGO}<span>{SITE_LOGO_ACCENT}</span></div>
     
-    <!-- Redes sociales integradas con el diseño del sitio -->
+    <!-- Redes sociales con colores personalizados -->
     <div class="footer-social" style="display: flex; justify-content: center; gap: 20px; margin: 15px 0;">
-      {SOCIAL_LINKS.map((link) => (
-        <a href={link.url} target="_blank" rel="noopener" class="footer-copy" style="text-decoration: none; font-weight: 500;">
-          {link.name}
-        </a>
-      ))}
+      {SOCIAL_LINKS.map((link) => {
+        // Definimos el color exacto para cada red social
+        let colorStyle = "color: var(--text-sub) !important;";
+        if (link.name === "Instagram") colorStyle = "color: #ff2d78 !important;"; // Rosado
+        if (link.name === "Facebook")  colorStyle = "color: #38bdf8 !important;"; // Celeste
+        if (link.name === "TikTok")    colorStyle = "color: #22e58a !important;"; // Verde neón
+
+        return (
+          <a 
+            href={link.url} 
+            target="_blank" 
+            rel="noopener" 
+            style={`text-decoration: none; font-weight: 600; ${colorStyle}`}
+          >
+            {link.name}
+          </a>
+        );
+      })}
     </div>
 
     <p class="footer-copy">© {new Date().getFullYear()} <a href={CREDIT_URL} target="_blank" rel="noopener">{SITE_LOGO}{SITE_LOGO_ACCENT}</a> · Todos los derechos reservados.</p>
     <p class="footer-designer"><a href={CREDIT_URL} target="_blank" rel="noopener">{CREDIT_TEXT} {CREDIT_NAME}</a></p>
-  </footer>
+</footer>
+
 
 
 
